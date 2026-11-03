@@ -1,0 +1,46 @@
+{
+  "appName": "DUCSU eVote",
+  "tagline": "Dhaka University Central Students' Union election",
+  "loading": "Loading…",
+  "nav": {
+    "home": "Home",
+    "login": "Voter login",
+    "adminLogin": "EC / Observer login",
+    "logout": "Log out",
+    "dashboard": "My page",
+    "mainMenu": "Main menu"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "বাংলা"
+  },
+  "loggedInAs": "Logged in as {{name}}",
+  "roles": {
+    "ec": "Election Commission",
+    "observer": "Observer",
+    "voter": "Voter",
+    "candidate": "Candidate"
+  },
+  "forbidden": {
+    "title": "Access denied",
+    "body": "Your account does not have access to this page."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you are looking for does not exist.",
+    "back": "Go to the home page"
+  },
+  "footer": "A CSE 4113 Internet Programming Lab project, University of Dhaka. Demo data only.",
+  "placeholder": {
+    "comingSoon": "This section is being built.",
+    "home": {
+      "title": "Vote for DUCSU from your phone",
+      "body": "Log in with your registration number and a one-time code sent to your university email.",
+      "voterCta": "Log in to vote",
+      "adminCta": "Election Commission or Observer? Log in here"
+    },
+    "voter": { "title": "Welcome, {{name}}", "body": "The ballot will appear here when voting opens." },
+    "admin": { "title": "Election Commission dashboard" },
+    "observer": { "title": "Observer dashboard" }
+  }
+}
