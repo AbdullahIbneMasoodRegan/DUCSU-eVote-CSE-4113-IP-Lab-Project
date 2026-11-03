@@ -36,6 +36,9 @@ describe('loadConfig', () => {
 
   it('requires DATABASE_URL and a real OTP secret', () => {
     expect(() => loadConfig({ OTP_SECRET: base.OTP_SECRET })).toThrow(/DATABASE_URL/);
+    // A value that is not a URL (what caused "ENOTFOUND base" on Render) fails fast with a clear message.
+    expect(() => loadConfig({ ...base, DATABASE_URL: 'neondb' })).toThrow(/postgresql:\/\//);
+    expect(() => loadConfig({ ...base, DATABASE_URL: '"postgresql://u:p@h/db"' })).toThrow(/postgresql:\/\//);
     expect(() => loadConfig({ DATABASE_URL: 'x', OTP_SECRET: 'short' })).toThrow(/OTP_SECRET/);
     expect(() =>
       loadConfig({ ...base, NODE_ENV: 'production', OTP_SECRET: 'change-me-change-me' }),
