@@ -1,0 +1,44 @@
+# Render Blueprint for the staging service (NFR-10).
+# One web service: Express serves /api and the built React app.
+# Database: Neon or Supabase free Postgres — paste its URL into DATABASE_URL
+# in the Render dashboard (sync: false keeps secrets out of git).
+services:
+  - type: web
+    name: ducsu-evote-staging
+    runtime: node
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: npm run build
+    # Runs pending migrations, then starts the server.
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '20'
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: 'true'
+      - key: OTP_SECRET
+        generateValue: true
+      # Staging uses dummy voter emails, so OTP emails are printed to the
+      # Render log instead of sent. Switch to smtp (and fill SMTP_*) for production.
+      - key: MAIL_TRANSPORT
+        value: console
+      - key: MAIL_FROM
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: '587'
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SEED_EC_PASSWORD
+        sync: false
+      - key: SEED_OBSERVER_PASSWORD
+        sync: false

@@ -1,0 +1,56 @@
+# Maps every folder in the work plan's ownership map to its owner, so GitHub
+# requests the right reviewer automatically. Later rules win over earlier ones.
+#
+# TODO (Day 1): replace @M2-GITHUB-USERNAME, @M3-GITHUB-USERNAME and
+# @M4-GITHUB-USERNAME with real GitHub usernames once slots are assigned.
+# M1 = @AbdullahIbneMasoodRegan
+
+# Default and shared files: M1 (core, routes, app shell, root config)
+*                                   @AbdullahIbneMasoodRegan
+/package.json                       @AbdullahIbneMasoodRegan
+/.github/                           @AbdullahIbneMasoodRegan
+/server/src/core/                   @AbdullahIbneMasoodRegan
+/server/src/routes.js               @AbdullahIbneMasoodRegan
+/server/src/app.js                  @AbdullahIbneMasoodRegan
+/client/src/app/                    @AbdullahIbneMasoodRegan
+/client/src/i18n/index.js           @AbdullahIbneMasoodRegan
+
+# M1 — platform, auth, notifications
+/server/src/modules/auth/           @AbdullahIbneMasoodRegan
+/server/src/modules/notify/         @AbdullahIbneMasoodRegan
+/server/tests/auth/                 @AbdullahIbneMasoodRegan
+/server/tests/core/                 @AbdullahIbneMasoodRegan
+/server/seeds/01_admins.js          @AbdullahIbneMasoodRegan
+/client/src/features/auth/          @AbdullahIbneMasoodRegan
+/client/src/i18n/*/auth.json        @AbdullahIbneMasoodRegan
+/client/src/i18n/*/common.json      @AbdullahIbneMasoodRegan
+
+# M2 — Election Commission, audit, results
+# /server/src/modules/election/     @M2-GITHUB-USERNAME
+# /server/src/modules/audit/        @M2-GITHUB-USERNAME
+# /server/src/modules/results/      @M2-GITHUB-USERNAME
+# /server/tests/election/           @M2-GITHUB-USERNAME
+# /server/seeds/02_election.js      @M2-GITHUB-USERNAME
+# /server/seeds/04_voters.js        @M2-GITHUB-USERNAME
+# /client/src/features/admin/       @M2-GITHUB-USERNAME
+# /client/src/i18n/*/admin.json     @M2-GITHUB-USERNAME
+
+# M3 — candidates, panels, public pages, UI kit
+# /server/src/modules/candidates/   @M3-GITHUB-USERNAME
+# /server/src/modules/turnout/      @M3-GITHUB-USERNAME
+# /server/seeds/03_candidates.js    @M3-GITHUB-USERNAME
+# /client/src/components/ui/        @M3-GITHUB-USERNAME
+# /client/src/features/candidates/  @M3-GITHUB-USERNAME
+# /client/src/features/public/      @M3-GITHUB-USERNAME
+# /client/src/features/observer/    @M3-GITHUB-USERNAME
+# /client/src/i18n/*/candidates.json @M3-GITHUB-USERNAME
+
+# M4 — voting engine
+# /server/src/modules/voting/       @M4-GITHUB-USERNAME
+# /server/tests/voting/             @M4-GITHUB-USERNAME
+# /client/src/features/voting/      @M4-GITHUB-USERNAME
+# /client/src/features/receipts/    @M4-GITHUB-USERNAME
+# /client/src/i18n/*/voting.json    @M4-GITHUB-USERNAME
+
+# Migrations: everyone adds their own file; M1 reviews.
+/server/migrations/                 @AbdullahIbneMasoodRegan
