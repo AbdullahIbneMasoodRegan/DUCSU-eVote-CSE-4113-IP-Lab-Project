@@ -51,8 +51,12 @@ CI (`.github/workflows/ci.yml`) runs lint, tests and the client build against Po
 
 `render.yaml` describes one Render web service. Create a free Neon or Supabase database, then
 **New → Blueprint** on Render, pick this repo and set `DATABASE_URL`. Each push to `main`
-auto-deploys; `npm start` runs pending migrations before starting. Run `npm run seed` once from
-the Render shell.
+auto-deploys; `npm start` runs pending migrations before starting. The free plan has no shell, so
+seed from your own machine with `DATABASE_URL` in `.env` pointing at the same database:
+`npm run seed`.
+
+Staging prints OTP emails to the Render **Logs** tab (`MAIL_TRANSPORT=console`), because the demo
+voters have dummy addresses.
 
 ## Repo layout and ownership
 
