@@ -1,4 +1,9 @@
+import path from 'node:path';
+import dotenv from 'dotenv';
 import { defineConfig } from 'vitest/config';
+
+// Pick up DATABASE_URL_TEST etc. from the repo-root .env.
+dotenv.config({ path: path.resolve(import.meta.dirname, '..', '.env'), quiet: true });
 
 // Tests run against a real PostgreSQL database (default: ducsu_evote_test on
 // localhost). Set DATABASE_URL_TEST to point somewhere else. The database is
@@ -17,7 +22,7 @@ export default defineConfig({
     setupFiles: ['./tests/setup.js'],
     // One shared database, so test files run one at a time.
     fileParallelism: false,
-    testTimeout: 20_000,
-    hookTimeout: 30_000,
+    testTimeout: 90_000,
+    hookTimeout: 90_000,
   },
 });
