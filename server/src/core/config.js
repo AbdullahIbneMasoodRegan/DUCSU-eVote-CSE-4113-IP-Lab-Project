@@ -20,7 +20,13 @@ const int = (fallback) => z.coerce.number().int().positive().default(fallback);
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: int(3000),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DATABASE_URL: z
+    .string({ required_error: 'DATABASE_URL is required' })
+    .trim()
+    .regex(
+      /^postgres(ql)?:\/\/[^\s]+$/,
+      'DATABASE_URL must be a full connection string starting with postgresql:// (no quotes or spaces)',
+    ),
   DATABASE_SSL: bool(false),
 
   SESSION_COOKIE_NAME: z.string().default('sid'),
