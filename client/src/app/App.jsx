@@ -6,12 +6,12 @@ import Layout from './Layout.jsx';
 import {
   HomePlaceholder,
   VoterPlaceholder,
-  AdminPlaceholder,
   ObserverPlaceholder,
   NotFound,
 } from './placeholders.jsx';
 import VoterLoginPage from '../features/auth/VoterLoginPage.jsx';
 import AdminLoginPage from '../features/auth/AdminLoginPage.jsx';
+import AdminDashboard from '../features/admin/AdminDashboard.jsx';
 
 export const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true };
 
@@ -51,7 +51,7 @@ export function AppRoutes() {
           path="admin/*"
           element={
             <RequireRole roles={['ec']}>
-              <AdminPlaceholder />
+              <AdminDashboard />
             </RequireRole>
           }
         />

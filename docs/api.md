@@ -163,8 +163,117 @@ Transports: `console` (dev), `memory` (tests, read `notify.outbox`), `smtp` (pro
 
 ## M2 — Election Commission, audit and results
 
-_Owner: M2. Routes under `/api/admin/elections/*`, `/api/admin/voters/*`, `/api/admin/nominations/*`,
-`/api/audit/*`, `/api/results/*`. To be written on Day 2._
+Owner: M2 · Folder: `server/src/modules/election`, `server/src/modules/audit`, `server/src/modules/results` · Tables: `elections`, `positions`, `voters`, `audit_log`, `results`
+
+### `GET /api/elections/current` — public (FR-03)
+
+Status banner data and clock synchronization for all users.
+```json
+// 200
+{
+  "data": {
+    "id": 1,
+    "title": "DUCSU Election 2026-2027",
+    "startsAt": "2026-11-23T04:00:00.000Z",
+    "endsAt": "2026-11-23T12:00:00.000Z",
+    "disputePeriodEndsAt": "2026-11-30T12:00:00.000Z",
+    "status": "nomination", // "draft" | "nomination" | "open" | "closed" | "published"
+    "serverTime": "2026-11-22T19:30:00.000Z"
+  }
+}
+```
+
+### `POST /api/admin/elections` — EC only (FR-03, FR-04)
+
+Create or update election timing and settings. Blocked after `starts_at` passes.
+```json
+// body
+{
+  "title": "DUCSU Election 2026-2027",
+  "startsAt": "2026-11-23T04:00:00.000Z",
+  "endsAt": "2026-11-23T12:00:00.000Z",
+  "disputePeriodEndsAt": "2026-11-30T12:00:00.000Z"
+}
+```
+
+### `GET /api/admin/positions` — EC / Observer (FR-03)
+
+Lists all positions for the election, candidate counts, and display order.
+
+### `POST /api/admin/positions` — EC only (FR-03, FR-04)
+
+Adds a position. Blocked by `assertEditable()` once voting begins.
+```json
+// body
+{
+  "nameEn": "Vice-President (VP)",
+  "nameBn": "সহ-সভাপতি (ভিপি)",
+  "displayOrder": 1,
+  "maxSelections": 1
+}
+```
+
+### `GET /api/admin/voters` — EC / Observer (FR-04)
+
+Paginated voter roster with filters: `search`, `hall`, `department`, `eligible`, `hasVoted`, `limit`, `offset`.
+
+### `POST /api/admin/voters/import` — EC only (FR-04)
+
+CSV batch upload with row-by-row validation report. Rejects invalid emails and prevents duplicates.
+```json
+// body
+{
+  "csv": "reg_no,name,email,hall,department\n2021-001,Student One,s1@ducsu.test,Salimullah Muslim Hall,CSE"
+}
+// 200
+{
+  "data": {
+    "totalProcessed": 1,
+    "importedCount": 1,
+    "errorCount": 0,
+    "errors": []
+  }
+}
+```
+
+### `PATCH /api/admin/voters/:id/eligibility` — EC only (FR-04)
+
+Toggle voter eligibility. Blocked once voting starts. Audited.
+```json
+// body
+{ "eligible": false }
+```
+
+### `GET /api/admin/nominations` — EC / Observer (FR-06)
+
+Queue of candidate nominations for review. Filters by `status` (`pending`, `approved`, `rejected`, `all`) and `positionId`.
+
+### `PATCH /api/admin/nominations/:id` — EC only (FR-06)
+
+Approve or reject a nomination. Rejection requires a mandatory reason. Audited.
+```json
+// body (rejection)
+{
+  "status": "rejected",
+  "rejectionReason": "Academic standing requirement not met."
+}
+```
+
+### `GET /api/audit` — EC / Observer (FR-16)
+
+Paginated immutable audit log trail with cryptographic hash chaining (`prev_hash` + SHA-256).
+
+### `POST /api/results/calculate` — EC only (FR-14)
+
+Calculates vote tallies from `ballot_choices`, determines winners based on `max_selections`, flags ties, and verifies ballots == receipts == voters marked voted. Only executable after `ends_at`.
+
+### `POST /api/results/publish` — EC only (FR-14)
+
+Marks the election results published (`results_published_at = now()`).
+
+### `GET /api/results` — Public when published, or EC / Observer (FR-14)
+
+Returns full election results by position, winner flags, ties, and cryptographic consistency metrics.
 
 ## M3 — Candidates, panels, turnout and public pages
 
