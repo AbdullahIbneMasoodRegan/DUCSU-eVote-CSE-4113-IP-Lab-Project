@@ -60,6 +60,9 @@ await notify.send({ to, template: 'otp', data: { ... }, lang: 'bn' });
   **Candidates are voters**, so `requireRole('voter')` also admits candidates. The candidate role is
   computed on every request (a voter with a row in `candidates`), so it applies right after nominating.
 - `req.user.type` is `'admin'` (EC/Observer, id = `admin_users.id`) or `'voter'` (id = `voters.id`).
+- `optionalAuth` — for **public** routes that show more to logged-in users (e.g. `GET /api/results`
+  before publishing). Sets `req.user` if there is a valid session, otherwise leaves it `undefined`; it
+  never rejects. Without one of these three guards, `req.user` is **never** set, even for a logged-in user.
 - **Dev-only shortcut:** with `NODE_ENV=development`, send `x-dev-user: voter:12` (or `candidate:12`,
   `ec:1`, `observer:1`) instead of logging in. It is ignored in test/production, and the server refuses
   to start if `DEV_USER_HEADER=true` is set outside development.

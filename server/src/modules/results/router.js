@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireRole } from '../../core/middleware/auth.js';
+import { requireRole, optionalAuth } from '../../core/middleware/auth.js';
 import { validate } from '../../core/middleware/validate.js';
 import { query, toCamel } from '../../core/db.js';
 import { forbidden, notFound } from '../../core/errors.js';
@@ -78,6 +78,7 @@ router.post(
  */
 router.get(
   '/results',
+  optionalAuth, // sets req.user for logged-in EC/Observer; anonymous users still allowed
   validate({
     query: z.object({
       electionId: z.coerce.number().int().optional(),
