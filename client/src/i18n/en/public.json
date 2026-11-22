@@ -1,0 +1,27 @@
+{
+  "home": {
+    "title": "Vote for DUCSU from your phone",
+    "tagline": "Dhaka University Central Students' Union election",
+    "body": "Log in with your registration number and a one-time code sent to your university email.",
+    "loginCta": "Log in to vote",
+    "myPage": "Go to my page",
+    "nominateCta": "Stand as a candidate",
+    "myNomination": "My nomination",
+    "browseCandidates": "Meet the candidates",
+    "browsePanels": "See the panels",
+    "adminCta": "Election Commission or Observer? Log in here",
+    "electionLoadError": "Could not load the election details. Please try again."
+  },
+  "banner": {
+    "noElection": "No election has been set up yet.",
+    "draft": "The election is being prepared.",
+    "nomination": "Nominations are open",
+    "open": "Voting is open",
+    "closed": "Voting has closed",
+    "published": "Results are published",
+    "starts": "Voting opens: {{time}}",
+    "ends": "Voting closes: {{time}}",
+    "nominationNote": "Students can submit and edit nominations until voting opens.",
+    "closedNote": "Results will be published by the Election Commission."
+  }
+}

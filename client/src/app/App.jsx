@@ -4,7 +4,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider, RequireRole } from './auth.jsx';
 import Layout from './Layout.jsx';
 import {
-  HomePlaceholder,
   VoterPlaceholder,
   ObserverPlaceholder,
   NotFound,
@@ -12,6 +11,11 @@ import {
 import VoterLoginPage from '../features/auth/VoterLoginPage.jsx';
 import AdminLoginPage from '../features/auth/AdminLoginPage.jsx';
 import AdminDashboard from '../features/admin/AdminDashboard.jsx';
+import HomePage from '../features/public/HomePage.jsx'; // M3
+import CandidateListPage from '../features/candidates/CandidateListPage.jsx'; // M3
+import CandidateProfilePage from '../features/candidates/CandidateProfilePage.jsx'; // M3
+import { PanelsPage, PanelDetailPage } from '../features/candidates/PanelsPage.jsx'; // M3
+import NominationPage from '../features/candidates/NominationPage.jsx'; // M3
 
 export const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true };
 
@@ -29,8 +33,22 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        {/* Public — M3 replaces the home page */}
-        <Route index element={<HomePlaceholder />} />
+        {/* Public — M3 */}
+        <Route index element={<HomePage />} />
+        <Route path="candidates" element={<CandidateListPage />} />
+        <Route path="candidates/:id" element={<CandidateProfilePage />} />
+        <Route path="panels" element={<PanelsPage />} />
+        <Route path="panels/:id" element={<PanelDetailPage />} />
+
+        {/* M3 — a voter's own nomination, status and panel */}
+        <Route
+          path="nomination"
+          element={
+            <RequireRole roles={['voter']}>
+              <NominationPage />
+            </RequireRole>
+          }
+        />
 
         {/* M1 — auth */}
         <Route path="login" element={<VoterLoginPage />} />
