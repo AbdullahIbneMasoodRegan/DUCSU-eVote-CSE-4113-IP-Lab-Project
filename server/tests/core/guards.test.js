@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { z } from 'zod';
 import config from '../../src/core/config.js';
-import { requireAuth, requireRole } from '../../src/core/middleware/auth.js';
+import { requireAuth, requireRole, optionalAuth } from '../../src/core/middleware/auth.js';
 import { validate } from '../../src/core/middleware/validate.js';
 import { errorHandler } from '../../src/core/middleware/errorHandler.js';
 import { api, agent, resetDb, createAdmin, createVoter, loginVoter, makeCandidate } from '../helpers.js';
@@ -15,6 +15,7 @@ const t = express();
 t.use(express.json());
 t.use(cookieParser());
 t.get('/any', requireAuth, (req, res) => res.json({ data: req.user }));
+t.get('/public', optionalAuth, (req, res) => res.json({ data: req.user ?? null }));
 t.get('/ec', requireRole('ec'), (req, res) => res.json({ data: req.user }));
 t.get('/staff', requireRole('ec', 'observer'), (req, res) => res.json({ data: req.user }));
 t.get('/voter', requireRole('voter'), (req, res) => res.json({ data: req.user }));
@@ -70,6 +71,19 @@ describe('requireAuth / requireRole', () => {
     const c = await request(t).get('/candidate').set('Cookie', cCookie).expect(200);
     expect(c.body.data.role).toBe('candidate');
     await request(t).get('/voter').set('Cookie', cCookie).expect(200);
+  });
+
+  it('optionalAuth sets req.user when logged in and lets anonymous requests through', async () => {
+    const ec = await createAdmin({ email: 'ec@x.test', role: 'ec' });
+    const cookie = cookieOf(
+      await api().post('/api/auth/admin/login').send({ email: ec.email, password: ec.password }),
+    );
+    const anon = await request(t).get('/public').expect(200);
+    expect(anon.body.data).toBeNull();
+    const garbage = await request(t).get('/public').set('Cookie', 'sid=garbage').expect(200);
+    expect(garbage.body.data).toBeNull();
+    const user = await request(t).get('/public').set('Cookie', cookie).expect(200);
+    expect(user.body.data).toEqual({ type: 'admin', id: ec.id, role: 'ec' });
   });
 
   it('throws on an unknown role name at startup', () => {

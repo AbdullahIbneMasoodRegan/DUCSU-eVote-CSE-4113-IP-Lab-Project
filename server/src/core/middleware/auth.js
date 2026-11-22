@@ -8,7 +8,7 @@
 // role is one of 'ec' | 'observer' | 'voter' | 'candidate'.
 // A candidate is also a voter, so requireRole('voter') admits candidates too.
 import config from '../config.js';
-import { unauthorized, forbidden } from '../errors.js';
+import { AppError, unauthorized, forbidden } from '../errors.js';
 import { resolveSession, clearSessionCookie } from '../sessions.js';
 
 export const ROLES = ['ec', 'observer', 'voter', 'candidate'];
@@ -50,6 +50,22 @@ async function authenticate(req, res) {
 
 export async function requireAuth(req, res, next) {
   await authenticate(req, res);
+  next();
+}
+
+/**
+ * For public routes that show more to logged-in users (e.g. results visible to
+ * EC/Observer before publishing). Sets req.user when there is a valid session,
+ * otherwise leaves it undefined and carries on — it never rejects the request.
+ *
+ *   router.get('/results', optionalAuth, (req, res) => { if (req.user?.role === 'ec') ... })
+ */
+export async function optionalAuth(req, res, next) {
+  try {
+    await authenticate(req, res);
+  } catch (err) {
+    if (!(err instanceof AppError) || err.status !== 401) throw err;
+  }
   next();
 }
 
