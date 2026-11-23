@@ -1,0 +1,41 @@
+These are all the files I created or changed for M4. Paths start from your project root, DUCSU-eVote-CSE-4113-IP-Lab-Project/.
+
+New files: server (backend)
+
+server/src/modules/voting/router.js: the routes /api/ballot, /api/vote, /api/receipts and /api/admin/photos/:voterId.
+server/src/modules/voting/service.js: the ballot query, the vote transaction, and the receipt and photo queries.
+server/src/modules/voting/receipt.js: generates the random receipt code.
+server/src/modules/voting/photo.js: reads the uploaded photo and re-encodes it to a clean JPEG.
+server/src/modules/voting/jobs.js: the daily job that deletes photos after the dispute period.
+
+New files: server tests
+
+server/tests/voting/helpers.js: shared test setup.
+server/tests/voting/ballot-vote.test.js: ballot and vote tests.
+server/tests/voting/double-vote.test.js: the 10 simultaneous votes test.
+server/tests/voting/receipts-photos.test.js: receipts, EC photo viewer and photo deletion tests.
+server/tests/voting/secrecy.test.js: ballot secrecy tests.
+
+New files: client (frontend)
+
+client/src/features/voting/VotingFlow.jsx: the main voting page.
+client/src/features/voting/BallotStep.jsx: one post per screen.
+client/src/features/voting/ReviewStep.jsx: the review screen.
+client/src/features/voting/PhotoCapture.jsx: camera capture.
+client/src/features/voting/voting.test.jsx: the client tests.
+client/src/features/receipts/ReceiptPage.jsx: the receipt shown after voting.
+client/src/features/receipts/PublicReceiptsPage.jsx: the public receipt list with search.
+client/src/i18n/en/voting.json: English text.
+client/src/i18n/bn/voting.json: Bangla text.
+
+
+things i have not done yet from here::
+
+
+Existing files I edited
+
+server/src/routes.js: turned on the voting router (2 lines).
+server/src/server.js: starts the photo cleanup job (2 lines).
+client/src/app/App.jsx: added the routes /voter/vote, /voter/receipt and /receipts.
+docs/api.md: wrote the M4 section.
+server/package.json and server/package-lock.json: added multer and node-cron.

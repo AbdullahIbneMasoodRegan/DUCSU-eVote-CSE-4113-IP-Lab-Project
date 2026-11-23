@@ -1,0 +1,126 @@
+{
+  "loading": "Loading your ballot…",
+  "loadError": "The ballot could not be loaded. Please try again.",
+  "backHome": "Back to my page",
+  "blocked": {
+    "ALREADY_VOTED": "You have already voted. A ballot can be cast only once, and your receipt was shown right after you voted.",
+    "VOTING_NOT_OPEN": "Voting has not opened yet. Please come back when it starts.",
+    "VOTING_CLOSED": "Voting has closed.",
+    "NOT_ELIGIBLE": "You are not eligible to vote in this election.",
+    "NO_ELECTION": "No election has been set up yet."
+  },
+  "intro": {
+    "title": "Your ballot",
+    "election": "{{title}}",
+    "posts_one": "There is {{count}} post to vote on.",
+    "posts_other": "There are {{count}} posts to vote on.",
+    "how": "You will see one post at a time. You may skip any post and leave it blank. You can review and change everything before you submit.",
+    "once": "You can vote only once. After you submit, your choices cannot be changed.",
+    "secretTitle": "Your vote is secret",
+    "secret": "Nothing links your name to your choices. Your selections stay in this page only and are never saved on your device.",
+    "photoTitle": "A photo will be taken",
+    "photo": "At the end you will take a photo with your camera. It lets the Election Commission settle a dispute if one is raised. It is not linked to your choices, only the Election Commission can see it, and it is deleted after the dispute period.",
+    "start": "Start voting"
+  },
+  "step": {
+    "post": "Post {{current}} of {{total}}",
+    "chooseOne": "Choose 1 candidate, or skip this post.",
+    "chooseUpTo": "Choose up to {{count}} candidates, or skip this post.",
+    "selected": "Selected {{selected}} of {{max}}",
+    "limitReached": "You have chosen the maximum for this post. Unselect a candidate to pick another.",
+    "noCandidates": "No candidates are standing for this post.",
+    "independent": "Independent",
+    "viewProfile": "View profile of {{name}}",
+    "skip": "Skip this post",
+    "clear": "Clear my choice",
+    "next": "Next",
+    "back": "Back",
+    "toReview": "Review my choices",
+    "backToReview": "Back to review",
+    "candidates": "Candidates"
+  },
+  "review": {
+    "title": "Review your choices",
+    "intro": "Check every post. You can change any choice before you continue.",
+    "leftBlank": "Left blank",
+    "change": "Change",
+    "changeFor": "Change choice for {{post}}",
+    "continue": "Continue to photo",
+    "back": "Back to the last post",
+    "blankWarning_one": "{{count}} post is left blank.",
+    "blankWarning_other": "{{count}} posts are left blank."
+  },
+  "photo": {
+    "title": "Take your photo",
+    "explain": "Look at the camera and take a clear photo of your face. You must take a photo to submit your vote.",
+    "turnOn": "Turn on camera",
+    "starting": "Starting the camera…",
+    "capture": "Take photo",
+    "retake": "Retake photo",
+    "livePreview": "Live camera preview",
+    "captured": "Your photo",
+    "ready": "Photo ready.",
+    "required": "Take a photo to enable the submit button.",
+    "denied": "Camera access was blocked. Allow the camera for this site in your browser settings, then press the button again.",
+    "notFound": "No camera was found on this device.",
+    "unsupported": "This browser cannot use the camera. Please try another browser such as Chrome, Firefox, Safari or Edge.",
+    "error": "The camera could not be started. Please try again.",
+    "back": "Back to review",
+    "submit": "Cast my vote"
+  },
+  "confirm": {
+    "title": "Cast your vote?",
+    "body": "You can vote only once. After you confirm, your choices cannot be changed.",
+    "cancel": "Go back",
+    "submit": "Yes, cast my vote",
+    "submitting": "Submitting…"
+  },
+  "errors": {
+    "ALREADY_VOTED": "You have already voted. A ballot can be cast only once.",
+    "VOTING_NOT_OPEN": "Voting has not opened yet.",
+    "VOTING_CLOSED": "Voting has closed, so your vote was not recorded.",
+    "NOT_ELIGIBLE": "You are not eligible to vote in this election.",
+    "TOO_MANY_SELECTIONS": "You chose more candidates than a post allows. Please review your choices.",
+    "INVALID_CHOICES": "One of your choices is not valid any more. Please go back and review your choices.",
+    "PHOTO_REQUIRED": "A photo is required. Please take your photo again.",
+    "INVALID_PHOTO": "The photo could not be read. Please take it again.",
+    "PHOTO_TOO_LARGE": "The photo is too large. Please take it again.",
+    "NETWORK_ERROR": "Could not reach the server. Nothing was recorded. Check your connection and try again.",
+    "generic": "Your vote could not be saved. Nothing was recorded, so please try again."
+  },
+  "receipt": {
+    "title": "Your vote was recorded",
+    "intro": "This is your receipt. It proves that a ballot was counted, but it does not show who you voted for.",
+    "codeLabel": "Receipt code",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "copyFailed": "Could not copy. Select the code and copy it by hand.",
+    "download": "Download (.txt)",
+    "keep": "Save this code now. For your privacy it is not stored against your name, so it cannot be shown again.",
+    "later": "After voting closes, search for your code on the public receipts list to confirm your ballot was counted.",
+    "publicList": "Public receipts list",
+    "home": "Back to my page",
+    "none": {
+      "title": "Receipt not available",
+      "body": "A receipt is shown only once, right after you vote. If you have already voted, use the receipt code you saved."
+    },
+    "file": {
+      "heading": "DUCSU eVote - voting receipt",
+      "code": "Receipt code: {{code}}",
+      "note": "Keep this code. After voting closes, search for it on the public receipts list to confirm your ballot was counted. This receipt does not show who you voted for."
+    }
+  },
+  "receipts": {
+    "title": "Published receipts",
+    "intro": "Every ballot has one receipt code. Search for yours to confirm your ballot was counted.",
+    "searchLabel": "Search for your receipt code",
+    "searchHint": "Type part of the code, for example 7KQ4.",
+    "count_one": "{{count}} receipt",
+    "count_other": "{{count}} receipts",
+    "none": "No receipt matches your search.",
+    "found": "A receipt with this code is on the list.",
+    "notClosed": "Receipts are published after voting closes.",
+    "loadError": "The receipts could not be loaded. Please try again.",
+    "listLabel": "Receipt codes, in alphabetical order"
+  }
+}
