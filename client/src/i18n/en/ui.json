@@ -1,0 +1,4 @@
+{
+  "modal": { "close": "Close" },
+  "stepper": { "label": "Progress", "progress": "Step {{current}} of {{total}}" }
+}

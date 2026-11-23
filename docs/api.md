@@ -280,8 +280,146 @@ Returns full election results by position, winner flags, ties, and cryptographic
 
 ## M3 — Candidates, panels, turnout and public pages
 
-_Owner: M3. Routes under `/api/candidates/*`, `/api/panels/*`, `/api/nominations/*`, `/api/turnout/*`,
-`/api/observer/*`. To be written on Day 2._
+Owner: M3 · Folders: `server/src/modules/candidates` (turnout arrives in Phase 2) · Tables: `candidates`,
+`panels`, `panel_issues`, `files`
+
+All mutating routes call `election.assertEditable()`: once `starts_at` passes they return
+`409 ELECTION_LOCKED`. Voter actions are **not** audited (the audit log is for administrative actions only).
+Public responses never include a registration number or email.
+
+Shapes used below:
+
+```json
+// Candidate (public)
+{ "id": 7, "name": "…", "hall": "…", "department": "…", "photoUrl": "/api/candidates/7/photo" | null,
+  "position": { "id": 1, "nameEn": "…", "nameBn": "…", "displayOrder": 1, "maxSelections": 1 },
+  "panel": { "id": 1, "name": "…", "slogan": "…", "logoUrl": "/api/panels/1/logo" | null } | null,
+  "bio": "…" }
+// + "manifesto" on GET /api/candidates/:id and on the owner's routes
+// + "status" ("pending" | "approved" | "rejected") and "rejectionReason" for the owner, EC and Observer only
+```
+
+Images are uploaded as the **raw request body** (`PUT`, `Content-Type: image/jpeg` or `image/png`, max 2 MB).
+The server decodes the real bytes, rejects anything that is not a JPEG/PNG, resizes (photo ≤ 800 px, logo ≤ 512 px)
+and **re-encodes** it, which strips EXIF/GPS metadata. Client helper: `uploadImage(path, file)` in
+`client/src/features/candidates/upload.js`.
+
+### `GET /api/nominations/me` — voter / candidate (FR-05)
+
+```json
+{ "data": { "electionStatus": "nomination", "editable": true,
+            "nomination": { /* Candidate + manifesto + status + rejectionReason */ } | null,
+            "ownedPanel": { "id": 3, "name": "…" } | null } }
+```
+
+`editable` is `false` once voting has started. This is the candidate's dashboard data (status and the EC's rejection reason).
+
+### `POST /api/nominations` — voter / candidate (FR-05)
+
+```json
+// body
+{ "positionId": 4, "bio": "≤ 1000 chars", "manifesto": "≤ 5000 chars" }   // 201 → Candidate (status "pending")
+```
+
+| Status | Code | When |
+| --- | --- | --- |
+| 403 | `NOT_ELIGIBLE` | The voter is marked ineligible |
+| 404 | `POSITION_NOT_FOUND` | Position is not in the current election |
+| 409 | `ALREADY_NOMINATED` | One nomination per student |
+| 409 | `ELECTION_LOCKED` | Voting has started |
+
+### `PATCH /api/nominations/me` — voter / candidate
+
+Any of `positionId`, `bio`, `manifesto`, `panelId` (`null` = independent). A **rejected** nomination goes back to
+`pending` (rejection reason cleared) when it is edited. Approved nominations are locked: `409 NOMINATION_APPROVED`.
+Also `409 PANEL_POSITION_TAKEN`, `409 CREATOR_CANNOT_LEAVE`.
+
+### `DELETE /api/nominations/me` — voter / candidate
+
+Withdraws the nomination and deletes its photo. `409 NOMINATION_APPROVED` / `CREATOR_CANNOT_LEAVE` (disband your panel first).
+
+### `PUT /api/nominations/me/photo` — voter / candidate (FR-05)
+
+Raw image body, see above. `200` → Candidate. `400 INVALID_IMAGE`, `413 PAYLOAD_TOO_LARGE`, `404 NOT_NOMINATED`.
+The previous photo is deleted. A rejected nomination goes back to `pending`.
+
+### `GET /api/candidates` — public (FR-07)
+
+Approved candidates only, grouped by post in ballot order. Posts with no candidates are included.
+Optional filters: `positionId`, `panelId`.
+
+```json
+{ "data": [ { "position": { … }, "candidates": [ /* Candidate */ ] } ] }
+```
+
+### `GET /api/candidates/:id` — public (FR-07)
+
+Full Candidate including `manifesto`. Only **approved** candidates are public (FR-06); the candidate themself, EC and
+Observer can also open pending/rejected ones (those responses carry `status`). Otherwise `404 CANDIDATE_NOT_FOUND`.
+
+### `GET /api/candidates/:id/photo` — public for approved
+
+Returns the image (`Cache-Control: public` when approved, `private, no-store` for the owner/EC preview of a
+pending one). `404 FILE_NOT_FOUND` when there is no photo or the viewer may not see it.
+**M2:** use this URL to show the photo in the EC nomination queue.
+
+### `GET /api/panels` — public
+
+```json
+{ "data": [ { "id": 1, "name": "…", "slogan": "…", "manifesto": "…", "logoUrl": "…" | null, "memberCount": 11 } ] }
+```
+
+`memberCount` counts approved candidates only.
+
+### `GET /api/panels/:id` — public
+
+Panel + `members: [{ id, name, hall, department, photoUrl, position }]` (approved only). The panel creator, EC and
+Observer also get unapproved members with a `status` field. The creator additionally gets `isCreator: true` and `totalMembers`.
+
+### `GET /api/panels/:id/logo` — public
+
+### `POST /api/panels` — candidate (FR-05)
+
+```json
+{ "name": "≤ 80", "slogan": "≤ 160", "manifesto": "≤ 5000" }   // 201 → panel (creator view)
+```
+
+Needs an existing nomination; the creator becomes the first member. `409 NOMINATION_REQUIRED`,
+`ALREADY_PANEL_CREATOR` (one panel per student), `PANEL_NAME_TAKEN`, `ALREADY_IN_PANEL`.
+
+### `PATCH /api/panels/:id`, `PUT /api/panels/:id/logo`, `DELETE /api/panels/:id` — panel creator
+
+Edit name/slogan/manifesto, upload the logo (raw image body), or disband (members become independents).
+`403 NOT_PANEL_CREATOR` for anyone else.
+
+### `POST /api/panels/:id/join` — candidate
+
+Join immediately. A panel fields at most `max_selections` candidates per post: `409 PANEL_POSITION_TAKEN`.
+`409 ALREADY_IN_PANEL`, `CREATOR_CANNOT_LEAVE` (creators must disband first).
+
+### `DELETE /api/panels/membership/me` — candidate
+
+Leave the current panel and stand as an independent. `400 NOT_IN_PANEL`.
+
+### `DELETE /api/panels/:id/members/:candidateId` — panel creator
+
+Remove a member from the panel (they become independent). The creator cannot remove themselves.
+
+### Not built yet (Phase 2)
+
+`/api/turnout/*`, candidate search, panel comparison (`panel_issues`), results page.
+
+### For M4 — `<CandidateProfile>`
+
+```jsx
+import CandidateProfile from '../candidates/CandidateProfile.jsx';
+import { Modal } from '../../components/ui';
+
+<Modal open={open} onClose={close} title={name}><CandidateProfile id={candidate.id} /></Modal>
+```
+
+Also in the UI kit (`client/src/components/ui`): `Button`, `ButtonLink`, `Card`, `Badge`, `Alert`, `Avatar`, `Loading`,
+`FormField`, `Modal`, `Stepper`, `PageLayout`, `useFetch`. Strings for `Modal`/`Stepper` are in the `ui` namespace.
 
 ## M4 — Voting engine
 

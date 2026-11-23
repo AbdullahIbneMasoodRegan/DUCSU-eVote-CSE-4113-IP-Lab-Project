@@ -17,7 +17,7 @@ import authRouter from './modules/auth/router.js';
 import electionRouter from './modules/election/router.js';     // M2
 import auditRouter from './modules/audit/router.js';           // M2
 import resultsRouter from './modules/results/router.js';       // M2
-// import candidatesRouter from './modules/candidates/router.js'; // M3
+import candidatesRouter from './modules/candidates/router.js'; // M3
 // import turnoutRouter from './modules/turnout/router.js';       // M3
 // import votingRouter from './modules/voting/router.js';         // M4
 
@@ -33,7 +33,7 @@ api.use(authRouter); // M1
 api.use(electionRouter);   // M2
 api.use(auditRouter);      // M2
 api.use(resultsRouter);    // M2
-// api.use(candidatesRouter); // M3
+api.use(candidatesRouter); // M3
 // api.use(turnoutRouter);    // M3
 // api.use(votingRouter);     // M4
 

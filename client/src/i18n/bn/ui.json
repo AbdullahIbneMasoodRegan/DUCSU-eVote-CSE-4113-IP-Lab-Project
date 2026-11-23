@@ -1,0 +1,4 @@
+{
+  "modal": { "close": "বন্ধ করুন" },
+  "stepper": { "label": "অগ্রগতি", "progress": "ধাপ {{current}} / {{total}}" }
+}
