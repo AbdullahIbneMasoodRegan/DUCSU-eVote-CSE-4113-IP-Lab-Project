@@ -67,4 +67,6 @@ See section 3 of the work plan and `.github/CODEOWNERS`. In short: `server/src/m
 and `client/src/app` are shared files (small PRs, reviewed by M1). Never edit a merged migration;
 add a new one with `npm run migrate:create --prefix server -- m3-short-name`.
 
+Dummy themes: [Link](https://drive.google.com/drive/folders/1CPSexu-7CZHeHzOtyCKGYAmewHZphzCv?usp=sharing)
+
 
