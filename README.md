@@ -58,6 +58,8 @@ seed from your own machine with `DATABASE_URL` in `.env` pointing at the same da
 Staging prints OTP emails to the Render **Logs** tab (`MAIL_TRANSPORT=console`), because the demo
 voters have dummy addresses.
 
+We can access with `https://ducse-evote-staging.onrender.com/`
+
 ## Repo layout and ownership
 
 See section 3 of the work plan and `.github/CODEOWNERS`. In short: `server/src/modules/<module>` and
