@@ -160,7 +160,10 @@ voter with a nomination.
 
 `notify.send({ to, template, data, lang })`. Templates live in `server/src/modules/notify/templates.js`
 (`otp` now; `votingOpen`, `reminder`, `resultsPublished` in Phase 2). Ask M1 to add a template.
-Transports: `console` (dev), `memory` (tests, read `notify.outbox`), `smtp` (production).
+Transports (`MAIL_TRANSPORT`): `console` (dev: printed to the server log), `memory` (tests, read
+`notify.outbox`), `brevo` (real email over Brevo's HTTPS API; needs `BREVO_API_KEY` and a verified
+`MAIL_FROM`), `smtp` (real email over any SMTP server). The server refuses to start if `brevo` is chosen
+without a key or a valid sender. A failed send is logged; the OTP endpoint still answers neutrally.
 
 ---
 

@@ -39,8 +39,13 @@ const schema = z.object({
   OTP_COOLDOWN_MINUTES: int(15),
   OTP_RESEND_SECONDS: int(60),
 
-  MAIL_TRANSPORT: z.enum(['console', 'smtp', 'memory']).optional(),
-  MAIL_FROM: z.string().default('DUCSU eVote <no-reply@ducsu-evote.local>'),
+  MAIL_TRANSPORT: z.enum(['console', 'smtp', 'brevo', 'memory']).optional(),
+  // Empty values (e.g. a blank field on Render) fall back to the default.
+  MAIL_FROM: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim() || 'DUCSU eVote <no-reply@ducsu-evote.local>'),
+  BREVO_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: int(587),
   SMTP_USER: z.string().optional(),
@@ -49,6 +54,13 @@ const schema = z.object({
   DEV_USER_HEADER: bool(true),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error', 'silent']).optional(),
 });
+
+/** "DUCSU eVote <you@gmail.com>" or "you@gmail.com" -> { name, email }, else null. */
+export function parseAddress(value) {
+  const m = /^\s*(?:"?([^"<]*?)"?\s*<\s*([^\s<>@]+@[^\s<>@]+)\s*>|([^\s<>@]+@[^\s<>@]+))\s*$/.exec(value ?? '');
+  if (!m) return null;
+  return { name: (m[1] ?? '').trim() || 'DUCSU eVote', email: m[2] ?? m[3] };
+}
 
 export function loadConfig(env = process.env) {
   const parsed = schema.safeParse(env);
@@ -67,6 +79,13 @@ export function loadConfig(env = process.env) {
   }
   if (isProd && e.OTP_SECRET.includes('change-me')) {
     throw new Error('OTP_SECRET must be changed in production');
+  }
+  const from = parseAddress(e.MAIL_FROM);
+  if (e.MAIL_TRANSPORT === 'brevo') {
+    if (!e.BREVO_API_KEY?.trim()) throw new Error('BREVO_API_KEY is required when MAIL_TRANSPORT=brevo');
+    if (!from) {
+      throw new Error('MAIL_FROM must be like "DUCSU eVote <you@gmail.com>" when MAIL_TRANSPORT=brevo');
+    }
   }
 
   return {
@@ -94,7 +113,9 @@ export function loadConfig(env = process.env) {
       transport:
         e.MAIL_TRANSPORT ?? (isProd ? 'smtp' : e.NODE_ENV === 'test' ? 'memory' : 'console'),
       from: e.MAIL_FROM,
+      fromAddress: from, // { name, email } parsed from MAIL_FROM
       smtp: { host: e.SMTP_HOST, port: e.SMTP_PORT, user: e.SMTP_USER, pass: e.SMTP_PASS },
+      brevo: { apiKey: e.BREVO_API_KEY?.trim() },
     },
     devUserHeader: isDev && e.DEV_USER_HEADER,
     logLevel: e.LOG_LEVEL ?? (e.NODE_ENV === 'test' ? 'silent' : 'info'),

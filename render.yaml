@@ -26,10 +26,14 @@ services:
         value: 'true'
       - key: OTP_SECRET
         generateValue: true
-      # Staging uses dummy voter emails, so OTP emails are printed to the
-      # Render log instead of sent. Switch to smtp (and fill SMTP_*) for production.
+      # console = OTP emails are printed to the Render log (dummy voter emails).
+      # For real email set MAIL_TRANSPORT=brevo in the dashboard and fill
+      # BREVO_API_KEY and MAIL_FROM (a sender verified in Brevo). Brevo uses
+      # HTTPS, so it works even where outgoing SMTP ports are blocked.
       - key: MAIL_TRANSPORT
         value: console
+      - key: BREVO_API_KEY
+        sync: false
       - key: MAIL_FROM
         sync: false
       - key: SMTP_HOST
