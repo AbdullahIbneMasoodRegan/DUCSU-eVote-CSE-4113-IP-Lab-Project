@@ -5,6 +5,9 @@
 // Every module router is mounted at /api and declares its own full paths, so
 // each owner keeps the prefixes listed in the ownership map:
 //   M1 auth         /api/auth/*, /api/me
+//   M1 settings     /api/admin/settings
+//   M1 crypto       /api/admin/crypto/*
+//   M1 notify       /api/admin/notifications/*
 //   M2 election     /api/admin/elections/*, /api/admin/voters/*, /api/admin/nominations/*
 //   M2 audit        /api/audit/*
 //   M2 results      /api/results/*
@@ -14,6 +17,9 @@
 import { Router } from 'express';
 import { query } from './core/db.js';
 import authRouter from './modules/auth/router.js';
+import settingsRouter from './modules/settings/router.js';
+import cryptoRouter from './modules/crypto/router.js';
+import notifyRouter from './modules/notify/router.js';
 import electionRouter from './modules/election/router.js';     // M2
 import auditRouter from './modules/audit/router.js';           // M2
 import resultsRouter from './modules/results/router.js';       // M2
@@ -26,10 +32,15 @@ const api = Router();
 // Liveness + database check, used by the host's health check and uptime monitor.
 api.get('/health', async (req, res) => {
   await query('SELECT 1');
-  res.json({ data: { status: 'ok', time: new Date().toISOString() } });
+  res.json({
+    data: { status: 'ok', time: new Date().toISOString(), uptimeSeconds: Math.round(process.uptime()) },
+  });
 });
 
 api.use(authRouter); // M1
+api.use(settingsRouter); // M1
+api.use(cryptoRouter); // M1
+api.use(notifyRouter); // M1
 api.use(electionRouter);   // M2
 api.use(auditRouter);      // M2
 api.use(resultsRouter);    // M2

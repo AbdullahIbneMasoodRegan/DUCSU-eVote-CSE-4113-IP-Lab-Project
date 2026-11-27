@@ -11,3 +11,8 @@ Thumbs.db
 .idea/
 backups/
 issue screenshots/
+
+# Load test: generated login codes and results (docs/load-test.md has the report)
+loadtest/voters.json
+loadtest/photo.jpg
+loadtest/results/

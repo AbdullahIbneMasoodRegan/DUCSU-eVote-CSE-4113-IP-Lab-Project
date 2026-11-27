@@ -3,6 +3,11 @@
 import crypto from 'node:crypto';
 import config from './config.js';
 import { query } from './db.js';
+import settings from '../modules/settings/index.js';
+
+// Timeouts come from the EC settings page; environment values are the defaults.
+const idleMs = async () => (await settings.get('session.idleMinutes')) * 60_000;
+const maxMs = async () => (await settings.get('session.maxHours')) * 3_600_000;
 
 export const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
@@ -16,7 +21,7 @@ export async function createSession({ subjectType, subjectId, role }, db = { que
   await db.query(
     `INSERT INTO sessions (id, subject_type, subject_id, role, expires_at, last_seen_at)
      VALUES ($1, $2, $3, $4, now() + $5 * interval '1 millisecond', now())`,
-    [hashToken(token), subjectType, subjectId, role, config.session.maxMs],
+    [hashToken(token), subjectType, subjectId, role, await maxMs()],
   );
   return token;
 }
@@ -37,7 +42,7 @@ export async function resolveSession(token) {
               AND EXISTS (SELECT 1 FROM candidates c WHERE c.voter_id = s.subject_id)) AS is_candidate
        FROM sessions s
       WHERE s.id = $1`,
-    [id, config.session.idleMs],
+    [id, await idleMs()],
   );
   const s = rows[0];
   if (!s) return null;
@@ -59,7 +64,7 @@ export async function purgeStaleSessions() {
   await query(
     `DELETE FROM sessions
       WHERE expires_at <= now() OR last_seen_at <= now() - $1 * interval '1 millisecond'`,
-    [config.session.idleMs],
+    [await idleMs()],
   );
 }
 
@@ -76,8 +81,8 @@ const cookieOptions = () => ({
   path: '/',
 });
 
-export function setSessionCookie(res, token) {
-  res.cookie(config.session.cookieName, token, { ...cookieOptions(), maxAge: config.session.maxMs });
+export async function setSessionCookie(res, token) {
+  res.cookie(config.session.cookieName, token, { ...cookieOptions(), maxAge: await maxMs() });
 }
 
 export function clearSessionCookie(res) {

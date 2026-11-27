@@ -155,6 +155,8 @@ voter with a nomination.
 - Expires after **15 minutes without a request** (`SESSION_IDLE_MINUTES`) or 12 hours in total
   (`SESSION_MAX_HOURS`). Every authenticated request resets the idle timer.
 - Logging in again replaces the browser's previous session.
+- The EC can change both timeouts (and the OTP limits) on the settings page; the environment variables
+  are the defaults.
 
 ### Mailer
 
@@ -164,6 +166,114 @@ Transports (`MAIL_TRANSPORT`): `console` (dev: printed to the server log), `memo
 `notify.outbox`), `brevo` (real email over Brevo's HTTPS API; needs `BREVO_API_KEY` and a verified
 `MAIL_FROM`), `smtp` (real email over any SMTP server). The server refuses to start if `brevo` is chosen
 without a key or a valid sender. A failed send is logged; the OTP endpoint still answers neutrally.
+
+### Rate limits (NFR-05)
+
+`POST /api/auth/otp/request` is limited per IP (default 300 per 15 min, generous because campus Wi-Fi
+shares IPs) and per registration number (default 5 per hour). `POST /api/auth/otp/verify` and
+`POST /api/auth/admin/login` are limited per IP (default 100 per 15 min). The EC can change all three
+on the settings page. Over the limit: `429 RATE_LIMITED` with `details.retryAfterSeconds`, plus
+`RateLimit-*` headers. Limits are off in automated tests (`setRateLimitEnabled(true)` turns them on).
+
+Successful EC/Observer logins are recorded in the audit log as `ADMIN_LOGIN`. Voter logins are not.
+
+### `GET /api/admin/settings` — EC / Observer (NFR-09)
+
+```json
+{ "data": { "locked": false, "settings": [
+  { "key": "otp.ttlMinutes", "group": "otp", "unit": "minutes", "min": 1, "max": 30,
+    "default": 5, "value": 10, "isDefault": false, "updatedAt": "…" } ] } }
+```
+
+`locked` is `true` while voting is open. Keys: `otp.ttlMinutes`, `otp.maxAttempts`,
+`otp.cooldownMinutes`, `otp.resendSeconds`, `session.idleMinutes`, `session.maxHours`,
+`rateLimit.otpPerRegNoPerHour`, `rateLimit.otpPerIpPer15Minutes`, `rateLimit.loginPerIpPer15Minutes`,
+`notify.reminderHoursBeforeClose`.
+
+### `PUT /api/admin/settings` — EC only (NFR-09)
+
+Body `{ "values": { "otp.ttlMinutes": 10, "session.idleMinutes": null } }`. `null` resets a key to its
+environment default. All or nothing; each change is audited (`UPDATE_SETTING` / `RESET_SETTING`,
+target `key: old -> new`). Returns the same shape as `GET`.
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `INVALID_SETTING` | Not a whole number in range; `details: { key, min, max }` |
+| 400 | `UNKNOWN_SETTING` | Key not in the list above |
+| 409 | `SETTINGS_LOCKED` | Voting is open |
+
+**For everyone:** read a setting with `await settings.get('notify.reminderHoursBeforeClose')`
+(`server/src/modules/settings/index.js`). It returns the saved value or the environment default.
+
+### `GET /api/admin/crypto/public-key` — EC / Observer (FR-11 extension)
+
+`200 { "data": { "electionId": 1, "hasKey": true, "fingerprint": "3f2a:…", "publicKey": "-----BEGIN PUBLIC KEY-----…", "locked": false } }`
+`400 NO_ELECTION` before an election exists.
+
+### `PUT /api/admin/crypto/public-key` — EC only (FR-11 extension)
+
+Body `{ "publicKey": "-----BEGIN PUBLIC KEY-----…" }` (RSA, at least 2048 bits, PEM/SPKI). The EC page
+`/admin/encryption` generates the pair in the browser (RSA-OAEP 3072, SHA-256), downloads the private
+key and uploads only the public key. Audited as `SET_PUBLIC_KEY` with the fingerprint.
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `INVALID_PUBLIC_KEY` | Not a PEM public key, not RSA, or under 2048 bits |
+| 409 | `ELECTION_LOCKED` | Voting has started (the key can no longer change) |
+
+### Ballot encryption helpers — for M4 (cast) and M2 (count)
+
+```js
+import crypto from '../crypto/index.js';
+
+// M4, inside the cast-vote transaction:
+const publicKey = await crypto.getPublicKey(election.id, client);  // null if the EC never set one
+const blob = crypto.encryptBallot([{ positionId, candidateId }, ...], publicKey); // string
+// store blob in ballots.encrypted_choices (M4 adds this text column in its own migration)
+
+// M2, at counting: privateKeyPem comes from the uploaded file, kept in memory only
+if (!crypto.keyPairMatches(privateKeyPem, publicKey)) throw badRequest('WRONG_KEY', '…');
+const choices = crypto.decryptBallot(blob, privateKeyPem); // throws if altered or wrong key
+```
+
+AES-256-GCM for the choices (detects tampering), RSA-OAEP SHA-256 for the AES key. Every ballot is
+padded to the same size, so ciphertext length reveals nothing. Format: `v1.<key>.<iv>.<tag>.<data>`.
+
+### `GET /api/admin/notifications` — EC / Observer (FR-17)
+
+Progress of the three election emails for the current election:
+
+```json
+{ "data": { "electionId": 1, "transport": "brevo", "batchSize": 50, "intervalSeconds": 60, "enabled": true,
+  "recipients": { "all": 202, "notVoted": 150 },
+  "campaigns": [ { "kind": "votingOpen", "dueAt": "…", "state": "finished", "sent": 2, "failed": 0,
+                   "skipped": 200, "startedAt": "…", "finishedAt": "…" } ] } }
+```
+
+`kind`: `votingOpen` | `reminder` | `resultsPublished`. `state`: `waiting` | `sending` | `finished`.
+`skipped` counts reserved test addresses (`.test`, `.example`, `.invalid`, `.localhost`), which are printed
+to the log instead of sent. Each finished campaign is audited as `NOTIFY_SENT` (system actor).
+`400 NO_ELECTION` before an election exists.
+
+### `GET /api/admin/notifications/preview?template=&lang=` — EC only
+
+`template`: `otp` | `votingOpen` | `reminder` | `resultsPublished`; `lang`: `en` | `bn` | `both` (default).
+Returns `{ subject, text, html }` rendered with sample data.
+
+**For M2:** nothing to call when publishing. The email job sees `elections.results_published_at` and sends
+the results email by itself.
+
+### What the observer dashboard (`/observer`) expects from M2 and M3
+
+The page already calls these and says "coming soon" while they return 404:
+
+- **M3 `GET /api/turnout`** (observer must be allowed):
+  `{ "total": 202, "voted": 50, "byHall": [ { "hall": "…", "total": 40, "voted": 12 } ] }`
+  (`eligible` is accepted instead of `total`). Polled every 10 seconds. Aggregates only, no names.
+- **M2 `GET /api/audit/verify`** (EC and observer): `{ "valid": true, "checked": 120 }` or
+  `{ "valid": false, "firstBrokenId": 37 }`.
+
+`GET /api/health` now also returns `uptimeSeconds`.
 
 ---
 

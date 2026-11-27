@@ -3,14 +3,14 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider, RequireRole } from './auth.jsx';
 import Layout from './Layout.jsx';
-import {
-  VoterPlaceholder,
-  ObserverPlaceholder,
-  NotFound,
-} from './placeholders.jsx';
+import { VoterPlaceholder, NotFound } from './placeholders.jsx';
 import VoterLoginPage from '../features/auth/VoterLoginPage.jsx';
 import AdminLoginPage from '../features/auth/AdminLoginPage.jsx';
 import AdminDashboard from '../features/admin/AdminDashboard.jsx';
+import SettingsPage from '../features/admin-system/SettingsPage.jsx'; // M1
+import EncryptionKeyPage from '../features/admin-system/EncryptionKeyPage.jsx'; // M1
+import NotificationsPage from '../features/admin-system/NotificationsPage.jsx'; // M1
+import ObserverDashboard from '../features/observer/ObserverDashboard.jsx'; // M1
 import HomePage from '../features/public/HomePage.jsx'; // M3
 import CandidateListPage from '../features/candidates/CandidateListPage.jsx'; // M3
 import CandidateProfilePage from '../features/candidates/CandidateProfilePage.jsx'; // M3
@@ -64,6 +64,33 @@ export function AppRoutes() {
           }
         />
 
+        {/* M1 — EC system pages (listed before admin/* so they win) */}
+        <Route
+          path="admin/settings"
+          element={
+            <RequireRole roles={['ec']}>
+              <SettingsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/encryption"
+          element={
+            <RequireRole roles={['ec']}>
+              <EncryptionKeyPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="admin/notifications"
+          element={
+            <RequireRole roles={['ec']}>
+              <NotificationsPage />
+            </RequireRole>
+          }
+        />
+
         {/* M2 — Election Commission */}
         <Route
           path="admin/*"
@@ -74,12 +101,12 @@ export function AppRoutes() {
           }
         />
 
-        {/* M3 — Observer */}
+        {/* M1 — Observer (FR-15) */}
         <Route
           path="observer/*"
           element={
             <RequireRole roles={['observer']}>
-              <ObserverPlaceholder />
+              <ObserverDashboard />
             </RequireRole>
           }
         />

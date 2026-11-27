@@ -5,6 +5,7 @@ import request from 'supertest';
 import { query } from '../src/core/db.js';
 import { createApp } from '../src/app.js';
 import notify from '../src/modules/notify/index.js';
+import settings from '../src/modules/settings/index.js';
 
 export const app = createApp();
 export const api = () => request(app);
@@ -21,6 +22,22 @@ export async function resetDb() {
     );
   }
   notify.outbox.length = 0;
+  settings.clearCache();
+}
+
+/** Create an election. `startsInDays` < 0 puts it in the voting period. */
+export async function createElection({ startsInDays = 1, lengthDays = 1, title = 'Test Election' } = {}) {
+  const { rows } = await query(
+    `INSERT INTO elections (title, starts_at, ends_at)
+     VALUES ($1, now() + $2 * interval '1 day', now() + ($2 + $3) * interval '1 day') RETURNING *`,
+    [title, startsInDays, lengthDays],
+  );
+  return rows[0];
+}
+
+/** Log in an admin with the given agent; returns the response. */
+export function loginAdmin(ag, admin) {
+  return ag.post('/api/auth/admin/login').send({ email: admin.email, password: admin.password });
 }
 
 let voterSeq = 0;

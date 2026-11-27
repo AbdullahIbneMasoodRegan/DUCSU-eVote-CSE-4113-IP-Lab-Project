@@ -39,6 +39,27 @@ const schema = z.object({
   OTP_COOLDOWN_MINUTES: int(15),
   OTP_RESEND_SECONDS: int(60),
 
+  // Defaults for the rate limits (NFR-05); the EC can change them on the
+  // settings page. Campus Wi-Fi puts many students behind one IP address,
+  // so the per-IP limits are deliberately generous.
+  RATE_LIMIT_OTP_PER_REGNO_PER_HOUR: int(5),
+  RATE_LIMIT_OTP_PER_IP_PER_15MIN: int(300),
+  RATE_LIMIT_LOGIN_PER_IP_PER_15MIN: int(100),
+  REMINDER_HOURS_BEFORE_CLOSE: int(3),
+
+  // Bulk emails (voting open, reminder, results) go out in batches to stay
+  // inside the free email plan (Brevo: 300 a day).
+  NOTIFY_BATCH_SIZE: int(50),
+  NOTIFY_INTERVAL_SECONDS: int(60),
+  // Off by default outside production, so a laptop sharing the database with
+  // staging never sends bulk email by surprise.
+  NOTIFY_ENABLED: bool(null),
+  // Public address of the site, used for links in emails.
+  APP_URL: z
+    .string()
+    .optional()
+    .transform((v) => (v?.trim() || 'http://localhost:5173').replace(/\/+$/, '')),
+
   MAIL_TRANSPORT: z.enum(['console', 'smtp', 'brevo', 'memory']).optional(),
   // Empty values (e.g. a blank field on Render) fall back to the default.
   MAIL_FROM: z
@@ -109,6 +130,18 @@ export function loadConfig(env = process.env) {
       cooldownMs: e.OTP_COOLDOWN_MINUTES * 60_000,
       resendMs: e.OTP_RESEND_SECONDS * 1000,
     },
+    rateLimit: {
+      otpPerRegNoPerHour: e.RATE_LIMIT_OTP_PER_REGNO_PER_HOUR,
+      otpPerIpPer15Min: e.RATE_LIMIT_OTP_PER_IP_PER_15MIN,
+      loginPerIpPer15Min: e.RATE_LIMIT_LOGIN_PER_IP_PER_15MIN,
+    },
+    notify: {
+      reminderHoursBeforeClose: e.REMINDER_HOURS_BEFORE_CLOSE,
+      batchSize: e.NOTIFY_BATCH_SIZE,
+      intervalMs: e.NOTIFY_INTERVAL_SECONDS * 1000,
+      enabled: e.NOTIFY_ENABLED ?? isProd,
+    },
+    appUrl: e.APP_URL,
     mail: {
       transport:
         e.MAIL_TRANSPORT ?? (isProd ? 'smtp' : e.NODE_ENV === 'test' ? 'memory' : 'console'),

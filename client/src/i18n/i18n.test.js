@@ -1,6 +1,6 @@
 // M1 — every English key has a Bangla translation (FR-18).
-// Namespaces whose Bangla file does not exist yet are reported as skipped;
-// the Week 7 deadline makes them required.
+// Every namespace must have a Bangla file (Week 7 deadline has passed).
+// For a full report with warnings: npm run i18n:check --prefix client
 import { describe, it, expect } from 'vitest';
 
 const files = import.meta.glob('./*/*.json', { eager: true });
@@ -19,7 +19,8 @@ for (const [path, mod] of Object.entries(files)) {
 
 describe('translations', () => {
   for (const ns of Object.keys(byLang.en)) {
-    it.skipIf(!byLang.bn[ns])(`bn/${ns}.json has every key in en/${ns}.json`, () => {
+    it(`bn/${ns}.json exists and has every key in en/${ns}.json`, () => {
+      expect(byLang.bn[ns], `missing file bn/${ns}.json`).toBeDefined();
       const missing = keys(byLang.en[ns]).filter((k) => !keys(byLang.bn[ns]).includes(k));
       expect(missing).toEqual([]);
     });

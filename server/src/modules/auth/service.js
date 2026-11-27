@@ -7,6 +7,18 @@ import { AppError, badRequest, unauthorized, tooMany } from '../../core/errors.j
 import logger from '../../core/logger.js';
 import { createSession, purgeStaleSessions } from '../../core/sessions.js';
 import notify from '../notify/index.js';
+import settings from '../settings/index.js';
+
+/** OTP limits as the EC set them on the settings page (environment values are the defaults). */
+async function otpLimits() {
+  const [ttl, maxAttempts, cooldown, resend] = await Promise.all([
+    settings.get('otp.ttlMinutes'),
+    settings.get('otp.maxAttempts'),
+    settings.get('otp.cooldownMinutes'),
+    settings.get('otp.resendSeconds'),
+  ]);
+  return { ttlMs: ttl * 60_000, maxAttempts, cooldownMs: cooldown * 60_000, resendMs: resend * 1000 };
+}
 
 // ---------------------------------------------------------------- OTP helpers
 
@@ -37,9 +49,10 @@ const INVALID_CODE = () =>
  * The email is sent in the background so response time does not leak either.
  */
 export async function requestOtp({ regNo, lang }) {
+  const limits = await otpLimits();
   const neutral = {
-    expiresInSeconds: Math.round(config.otp.ttlMs / 1000),
-    resendAfterSeconds: Math.round(config.otp.resendMs / 1000),
+    expiresInSeconds: Math.round(limits.ttlMs / 1000),
+    resendAfterSeconds: Math.round(limits.resendMs / 1000),
   };
 
   const { rows } = await query(
@@ -62,7 +75,7 @@ export async function requestOtp({ regNo, lang }) {
             failed_attempts = 0,
             created_at = now()
       WHERE otp_codes.created_at <= now() - $4 * interval '1 millisecond'`,
-    [voter.id, hashOtp(voter.id, code), config.otp.ttlMs, config.otp.resendMs],
+    [voter.id, hashOtp(voter.id, code), limits.ttlMs, limits.resendMs],
   );
   if (rowCount === 0) return neutral;
 
@@ -70,7 +83,7 @@ export async function requestOtp({ regNo, lang }) {
     .send({
       to: voter.email,
       template: 'otp',
-      data: { name: voter.name, code, minutes: Math.round(config.otp.ttlMs / 60_000) },
+      data: { name: voter.name, code, minutes: Math.round(limits.ttlMs / 60_000) },
       lang,
     })
     .catch((err) => logger.error('OTP email failed', { voterId: voter.id, error: err.message }));
@@ -86,6 +99,7 @@ export async function requestOtp({ regNo, lang }) {
  * two simultaneous requests. Returns { token, voter }.
  */
 export async function verifyOtp({ regNo, code }) {
+  const limits = await otpLimits();
   // The transaction returns an outcome instead of throwing, so the
   // failed-attempt counter is committed even when the code is wrong.
   const outcome = await withTransaction(async (client) => {
@@ -113,12 +127,12 @@ export async function verifyOtp({ regNo, code }) {
 
     if (!sameHash(otp.code_hash, hashOtp(voter.id, code))) {
       const attempts = otp.failed_attempts + 1;
-      if (attempts >= config.otp.maxAttempts) {
+      if (attempts >= limits.maxAttempts) {
         await client.query('DELETE FROM otp_codes WHERE id = $1', [otp.id]);
         const { rows } = await client.query(
           `UPDATE voters SET otp_cooldown_until = now() + $2 * interval '1 millisecond'
             WHERE id = $1 RETURNING otp_cooldown_until`,
-          [voter.id, config.otp.cooldownMs],
+          [voter.id, limits.cooldownMs],
         );
         return { error: 'cooldown', until: rows[0].otp_cooldown_until };
       }
