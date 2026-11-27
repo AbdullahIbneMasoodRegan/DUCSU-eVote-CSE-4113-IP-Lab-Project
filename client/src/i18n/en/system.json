@@ -1,0 +1,139 @@
+{
+  "backToDashboard": "Back to dashboard",
+  "key": {
+    "title": "Ballot encryption key",
+    "subtitle": "Ballots are stored encrypted. Only the private key file you keep can open them at counting time.",
+    "current": "Key on file",
+    "fingerprint": "Fingerprint:",
+    "none": "No key has been set yet. Create one before voting opens.",
+    "locked": "Voting has started, so the key can no longer be changed.",
+    "createTitle": "Create the key",
+    "replaceTitle": "Replace the key",
+    "step1": "Generate a key pair. This happens in your browser; nothing is sent yet.",
+    "step2": "Download the private key file and keep it safe (for example on two USB drives).",
+    "step3": "Upload the public key. The private key never leaves your computer.",
+    "warning": "If the private key file is lost, the ballots cannot be counted. The server does not keep a copy.",
+    "generate": "Generate key pair",
+    "newFingerprint": "New key fingerprint:",
+    "download": "Download private key file",
+    "confirm": "I have saved the private key file somewhere safe.",
+    "upload": "Upload public key",
+    "saved": "The public key is saved. Ballots will be encrypted with it.",
+    "browserError": "This browser cannot generate the key. Please use a recent Chrome, Firefox, Edge or Safari."
+  },
+  "settings": {
+    "title": "System settings",
+    "subtitle": "Change login, session and email settings without a code change. Every change is recorded in the audit log.",
+    "locked": "Voting is open, so settings cannot be changed until it closes.",
+    "save": "Save changes",
+    "saved": "Settings saved.",
+    "useDefault": "Use default",
+    "range": "Allowed {{min}}–{{max}}. Default {{def}}.",
+    "groups": {
+      "otp": "Login codes",
+      "session": "Sessions",
+      "rateLimit": "Rate limits",
+      "notify": "Email reminders"
+    },
+    "keys": {
+      "otp": {
+        "ttlMinutes": "Code expires after",
+        "maxAttempts": "Wrong codes allowed",
+        "cooldownMinutes": "Lockout after too many wrong codes",
+        "resendSeconds": "Wait before a new code"
+      },
+      "session": {
+        "idleMinutes": "Log out after inactivity",
+        "maxHours": "Maximum session length"
+      },
+      "rateLimit": {
+        "otpPerRegNoPerHour": "Code requests per registration number, per hour",
+        "otpPerIpPer15Minutes": "Code requests per network, per 15 minutes",
+        "loginPerIpPer15Minutes": "Login attempts per network, per 15 minutes"
+      },
+      "notify": {
+        "reminderHoursBeforeClose": "Send the reminder this long before voting closes"
+      }
+    },
+    "units": {
+      "minutes": "minutes",
+      "seconds": "seconds",
+      "hours": "hours",
+      "attempts": "attempts",
+      "requests": "requests"
+    }
+  },
+  "notify": {
+    "title": "Election emails",
+    "subtitle": "Emails go to every eligible voter when voting opens, as a reminder to those who have not voted, and when results are published.",
+    "summary": "{{all}} eligible voters, {{notVoted}} have not voted yet. Emails go out {{batch}} at a time, every {{seconds}} seconds.",
+    "disabled": "The email job is switched off on this server (NOTIFY_ENABLED=false).",
+    "consoleTransport": "This server prints emails to its log instead of sending them (MAIL_TRANSPORT=console).",
+    "email": "Email",
+    "when": "Starts",
+    "state": "Status",
+    "counts": "Progress",
+    "afterPublish": "When results are published",
+    "countLine": "{{sent}} sent, {{failed}} failed, {{skipped}} test addresses skipped",
+    "kinds": {
+      "votingOpen": "Voting is open",
+      "reminder": "Reminder to vote",
+      "resultsPublished": "Results published",
+      "otp": "Login code"
+    },
+    "states": {
+      "waiting": "Waiting",
+      "sending": "Sending",
+      "finished": "Finished"
+    },
+    "preview": "Preview",
+    "template": "Email",
+    "language": "Language",
+    "langs": {
+      "both": "Bangla and English (sent to voters)"
+    },
+    "subject": "Subject:"
+  },
+  "observer": {
+    "title": "Observer dashboard",
+    "subtitle": "Read-only view of turnout, system status and the audit log. No personal voter data is shown here.",
+    "turnout": "Live turnout",
+    "turnoutMissing": "Live turnout will appear here once the turnout service is ready.",
+    "turnoutLine": "{{voted}} of {{total}} eligible voters have voted.",
+    "refreshes": "Refreshes every 10 seconds. Candidate vote counts are never shown before voting closes.",
+    "hall": "Hall",
+    "voted": "Voted",
+    "status": "System status",
+    "server": "Server",
+    "online": "Online",
+    "offline": "Not responding",
+    "uptime": "up for",
+    "uptimeValue": "{{h}} h {{m}} min",
+    "election": "Election",
+    "noElection": "No election yet",
+    "encryption": "Ballot key",
+    "noKey": "Not set",
+    "emails": "Emails",
+    "statuses": {
+      "draft": "Draft",
+      "nomination": "Nomination",
+      "open": "Voting open",
+      "closed": "Voting closed",
+      "published": "Results published"
+    },
+    "audit": "Audit log",
+    "verify": "Check integrity",
+    "verifyMissing": "The integrity check will be available once the audit verification service is ready.",
+    "verifyOk": "The audit log is intact ({{n}} entries checked).",
+    "verifyBroken": "The audit log has been changed: first bad entry #{{id}}.",
+    "filter": "Filter by action",
+    "time": "Time",
+    "actor": "By",
+    "action": "Action",
+    "target": "Details",
+    "noEntries": "No entries.",
+    "showing": "{{from}}–{{to}} of {{total}}",
+    "newer": "Newer",
+    "older": "Older"
+  }
+}

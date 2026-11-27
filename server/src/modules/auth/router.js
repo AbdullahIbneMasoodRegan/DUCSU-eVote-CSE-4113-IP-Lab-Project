@@ -4,6 +4,7 @@ import { z } from 'zod';
 import config from '../../core/config.js';
 import { requireAuth } from '../../core/middleware/auth.js';
 import { validate } from '../../core/middleware/validate.js';
+import { otpRequestPerIp, otpRequestPerRegNo, loginPerIp } from '../../core/middleware/rateLimit.js';
 import {
   setSessionCookie,
   clearSessionCookie,
@@ -11,6 +12,7 @@ import {
   resolveSession,
 } from '../../core/sessions.js';
 import { requestOtp, verifyOtp, adminLogin, getProfile } from './service.js';
+import audit from '../audit/index.js';
 
 const router = Router();
 
@@ -27,7 +29,7 @@ const regNo = z
  */
 async function finishLogin(req, res, token) {
   await destroySession(req.cookies?.[config.session.cookieName]);
-  setSessionCookie(res, token);
+  await setSessionCookie(res, token);
   const { user } = await resolveSession(token);
   res.json({ data: { user: await getProfile(user) } });
 }
@@ -35,7 +37,9 @@ async function finishLogin(req, res, token) {
 // FR-01: ask for a one-time code. Always the same neutral response.
 router.post(
   '/auth/otp/request',
+  otpRequestPerIp,
   validate({ body: z.object({ regNo, lang: z.enum(['en', 'bn']).default('en') }) }),
+  otpRequestPerRegNo,
   async (req, res) => {
     const data = await requestOtp(req.body);
     res.json({
@@ -51,6 +55,7 @@ router.post(
 // FR-01: exchange the code for a session cookie.
 router.post(
   '/auth/otp/verify',
+  loginPerIp,
   validate({
     body: z.object({ regNo, code: z.string().trim().regex(/^\d{6}$/, 'Code must be 6 digits') }),
   }),
@@ -63,6 +68,7 @@ router.post(
 // FR-02: EC and Observer login.
 router.post(
   '/auth/admin/login',
+  loginPerIp,
   validate({
     body: z.object({
       email: z.string().trim().email().max(254),
@@ -70,7 +76,9 @@ router.post(
     }),
   }),
   async (req, res) => {
-    const { token } = await adminLogin(req.body);
+    const { token, adminId } = await adminLogin(req.body);
+    // Admin logins go in the audit log (FR-16); voter logins never do (ballot secrecy).
+    await audit.record({ user: { type: 'admin', id: adminId }, ip: req.ip }, 'ADMIN_LOGIN', `admin:${adminId}`);
     await finishLogin(req, res, token);
   },
 );

@@ -37,6 +37,12 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
+      # Links in emails point here (FR-17).
+      - key: APP_URL
+        value: https://ducsu-evote-staging.onrender.com
+      # Election emails (voting open, reminder, results) are sent by this server.
+      - key: NOTIFY_ENABLED
+        value: 'true'
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
